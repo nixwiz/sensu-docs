@@ -40,7 +40,7 @@ All check commands are executed by Sensu agents as the `sensu` user. Commands
 must be executable files that are discoverable on the Sensu agent system (ex:
 installed in a system `$PATH` directory).
 
-### Check scheduling
+## Check scheduling
 
 Checks are exclusively scheduled by the Sensu backend, which schedules and
 publishes check execution requests to entities via a [Publish/Subscribe
@@ -61,13 +61,38 @@ and/or memory usage thresholds might be more important on a caching system than
 on a file server. Subscriptions also allow you to configure check requests for
 an entire group or subgroup of systems rather than require a traditional 1:1
 mapping.
+Sensu also supports round-robin scheduling to cycle check executions through agents within a subscription.
 
 Checks can be scheduled in an interval or cron fashion. It's important to note
 that for interval checks, an initial offset is calculated to splay the check's
 _first_ scheduled request. This helps to balance the load of both the backend
 and the agent, and may result in a delay before initial check execution.
 
-### Check result specification
+## Proxy checks
+
+Sensu supports running checks where the results are considered to be for an
+entity that isn’t actually the one executing the check, regardless of whether
+that entity is a Sensu agent entity or a **proxy entity**.
+Proxy entities allow Sensu to monitor external resources
+on systems or devices where a Sensu agent cannot be installed, like a
+network switch or a website.
+
+To execute a check for a single proxy entity, include the `proxy_entity_name` in the check definition.
+To execute a check for a group of proxy entities, include the `proxy_requests` attributes in the check definition.
+
+When the [proxy_requests attributes](#proxy-requests-top-level) are present in a check, Sensu runs the check
+for each entity that matches certain definitions specified in the `entity_attributes`.
+The attributes supplied must match exactly as stated; no variables or directives have
+any special meaning, but you can still use [Sensu query expressions][11] to
+perform more complicated filtering on the available value, such as finding
+entities with particular subscriptions.
+
+## Round-robin scheduling
+
+Round-robin style check scheduling lets you distribute check executions across agents in a subscription. It works differently depending on whether the check is a regular or proxy check. (Proxy checks include their the proxyentityname attribute or the proxyrequests attributes.) 
+
+
+## Check result specification
 
 Although the Sensu agent will attempt to execute any
 command defined for a check, successful processing of check results requires
@@ -93,7 +118,7 @@ At every execution of a check command – regardless of success or failure – t
 Sensu agent publishes the check’s result for eventual handling by the **event
 processor** (the Sensu backend).
 
-### Check token substitution
+## Check token substitution
 
 Sensu check definitions may include attributes that you may wish to override on
 an entity-by-entity basis. For example, [check commands][4] – which may include
@@ -108,7 +133,7 @@ documentation][5].
 _NOTE: Check tokens are processed before check execution, therefore token substitutions
 will not apply to check data delivered via the local agent socket input._
 
-### Check hooks
+## Check hooks
 
 Check hooks are commands run by the Sensu agent in response to the result of
 check command execution. The Sensu agent will execute the appropriate configured
@@ -116,22 +141,6 @@ hook command, depending on the check execution status (ex: 0, 1, 2).
 
 Learn how to use check hooks with the [Sensu hooks reference
 documentation][6].
-
-### Proxy requests
-
-Sensu supports running checks where the results are considered to be for an
-entity that isn’t actually the one executing the check, regardless of whether
-that entity is a Sensu agent entity or a **proxy entity**.
-Proxy entities allow Sensu to monitor external resources
-on systems or devices where a Sensu agent cannot be installed, like a
-network switch or a website.
-
-By specifying the [proxy_requests attributes](#proxy-requests-top-level) in a check, Sensu runs the check
-for each entity that matches certain definitions specified in the `entity_attributes`.
-The attributes supplied must match exactly as stated; no variables or directives have
-any special meaning, but you can still use [Sensu query expressions][11] to
-perform more complicated filtering on the available value, such as finding
-entities with particular subscriptions.
 
 ## Check specification
 
